@@ -1,0 +1,50 @@
+def response(system, user):
+    stream = client.chat.completions.create(
+        model="gpt-5.6",
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user}
+        ],
+        stream=True
+    )
+
+    full_response = ""
+
+    for chunk in stream:
+        content = chunk.choices[0].delta.content or ""
+        full_response += content
+
+    return full_response
+
+from openai import OpenAI
+
+client = OpenAI()
+
+def make_agent(system_prompt):
+
+    def LLM_agent(user):
+        return response(system_prompt, user)
+
+    return LLM_agent
+
+def make_chain(*args):
+
+    def chain(user_input):
+        current = user_input
+        for step in args:
+            # agent면 실행
+            if callable(step):
+                current = step(current)
+            # 문자열이면 프롬프트 추가
+            elif isinstance(step, str):
+                current = step + "\n" + current
+        return current
+        
+    return chain
+
+make_chain 함수를 간단하게 streamlit으로 시뮬레이션할 수 있는 웹페이지로 만드는 코드를 .py 파일로 만들어 줘.
+
+1. api key는 내가 웹페이지 내에서 직접 입력할 수 있게 해 주고
+2. 웹페이지 내에서 에이전트 및 프롬프트 편집을 내가 직접 할 수 있어야 하고
+3. 첨부 파일을 올리면 RAG로 그 파일을 참조해서 답변할 수 있어야 해
+4. 최종 상호작용은 챗봇 형태가 좋겠어.
